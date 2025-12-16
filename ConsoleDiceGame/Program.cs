@@ -46,6 +46,8 @@ while (playing)
                 ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins + 1 }
                 : game with { Losses = game.Losses + 1, Coins = game.Coins + round.Coins };
 
+            DisplayRoundResults(round, game);
+
             break;
         case GameChoices.Exit:
             Environment.Exit(0);
@@ -336,6 +338,49 @@ Round PlayRound(int[] diceRolls)
         _ => Bonus.Normal
     };
     return new Round(diceRolls, bonus);
+}
+
+void Write(Game game, string message)
+{
+    Console.ForegroundColor = game.ThemeColor;
+    Console.WriteLine(message);
+    Console.ResetColor();
+}
+
+void DisplayRoundResults(Round round, Game game)
+{
+    Console.WriteLine("Loading round...");
+    Thread.Sleep(TimeSpan.FromSeconds(2));
+    Console.WriteLine("Rolling the dice...");
+    foreach (var roll in round.DiceRolls)
+    {
+        var speed = game.Speed switch
+        {
+            Speed.Normal => 1,
+            Speed.Double => 2,
+            Speed.Triple => 4
+        };
+        Thread.Sleep(Random.Shared.Next(300, 1000) / speed);
+        Write(game, $"\t - {roll}");
+    }
+
+    Console.WriteLine();
+    if (round.Win)
+        Write(game with { ThemeColor = ConsoleColor.Green }, "You won!");
+    else
+        Write(game with { ThemeColor = ConsoleColor.Magenta }, "You lost!");
+    Console.WriteLine();
+    Console.WriteLine(
+        round.Bonus switch
+        {
+            Bonus.Normal => "You Rolled with normal dice!",
+            Bonus.Double => "You Rolled a Double! +2 Points And +2 Coins",
+            Bonus.Triple => "You Rolled a Tripple! +6 Points And +10 Coins"
+        });
+    Console.WriteLine($"Points: {round.Points}");
+    Console.WriteLine($" Coins: {round.Coins}");
+    Console.WriteLine($"  Wins: {game.Wins} Losses: {game.Losses}");
+    Console.WriteLine();
 }
 
 enum GameChoices
