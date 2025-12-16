@@ -1,30 +1,22 @@
 ﻿//Initial Values
 
-int bonus;
-int score;
 var rollspeed = 1;
 var themecolor = ConsoleColor.White;
 var shop = false;
-var win = false;
 var playing = true;
 var wins = 0;
 var losses = 0;
 var coins = 0;
-bool Double;
-bool Tripple;
-string DoubleWin;
-string TrippleWin;
 
 
 //While loop for Game
 while (playing)
 {
     //Resets each game
-    win = false;
-    Double = false;
-    Tripple = false;
-    bonus = 0;
-    score = 0;
+    var win = false;
+    var doubleScore = false;
+    var tripleScore = false;
+    var bonus = 0;
 
     //Randomizing each dice 1-6
     Random dice = new();
@@ -155,7 +147,7 @@ while (playing)
     {
         coins += 2;
         bonus += 2;
-        Double = true;
+        doubleScore = true;
     }
 
     //Tripple Checker
@@ -163,26 +155,19 @@ while (playing)
     {
         coins += 8;
         bonus += 4;
-        Double = false;
-        Tripple = true;
+        doubleScore = false;
+        tripleScore = true;
     }
 
     //Double Win Message 
-    if (Double)
-        DoubleWin = "You Rolled a Double! +2 And +2 Coins";
-    else
-        DoubleWin = "";
-    ;
+    var doubleScoreMessage = doubleScore ? "You Rolled a Double! +2 And +2 Coins" : "";
 
     //Tripple Win Message
-    if (Tripple)
-        TrippleWin = "You Rolled a Tripple! +6 And +10 Coins";
-    else
-        TrippleWin = "";
+    var trippleScoreMessage = tripleScore ? "You Rolled a Tripple! +6 And +10 Coins" : "";
 
 
     //Score tally
-    score = dice1 + dice2 + dice3 + bonus;
+    var score = dice1 + dice2 + dice3 + bonus;
 
 
     //win Detector
@@ -218,7 +203,7 @@ while (playing)
         coins++;
         Console.WriteLine(
             @$"
-    Bonus: {DoubleWin}{TrippleWin}
+    Bonus: {doubleScoreMessage}{trippleScoreMessage}
     Score: {score}
      Wins: {wins} Losses: {losses}
     + 1 Coins: {coins}
@@ -231,7 +216,7 @@ while (playing)
         losses++;
         Console.WriteLine(
             @$"
-    Bonus: {DoubleWin}{TrippleWin}
+    Bonus: {doubleScoreMessage}{trippleScoreMessage}
     Score: {score}!
     Wins: {wins} Losses: {losses}
     Coins: {coins}
