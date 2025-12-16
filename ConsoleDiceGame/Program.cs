@@ -46,75 +46,75 @@ while (playing)
         Console.Write("\n'r'  50 Coins - Red Dice:\t1 1 1");
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write("\n'x'  30 Coins - 2x Roll Speed - (Can Stack)\n");
-        var Choice = Console.ReadKey();
+        var choice = Console.ReadKey();
 
         //Buying Yellow Color and Changing Team
-        if (Choice.KeyChar == 'y' && coins >= 10)
+        if (choice.KeyChar == 'y' && coins >= 10)
         {
             coins -= 10;
             Console.WriteLine($"\nYou have Purchased Yellow! -10 Coins You have {coins} Coins left!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
             themecolor = ConsoleColor.Yellow;
             Console.WriteLine();
         }
 
-        else if (Choice.KeyChar == 'y')
+        else if (choice.KeyChar == 'y')
 
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"\nYou Cant Afford that, You have {coins}!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
         }
 
         //Buying Blue Color And changing Theme
-        if (Choice.KeyChar == 'b' && coins >= 20)
+        if (choice.KeyChar == 'b' && coins >= 20)
         {
             coins -= 20;
             Console.WriteLine($"\nYou have Purchased Blue! -20 Coins You have {coins} Coins left!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
             themecolor = ConsoleColor.Blue;
         }
 
-        else if (Choice.KeyChar == 'b')
+        else if (choice.KeyChar == 'b')
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"\nYou Cant Afford that, You have {coins}!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
         }
 
         //Buying Yellow Color And changing Theme
-        if (Choice.KeyChar == 'r' && coins >= 50)
+        if (choice.KeyChar == 'r' && coins >= 50)
         {
             coins -= 50;
             Console.WriteLine($"\nWow! You have Purchased Red! -50?! Coins You have {coins} Coins left!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
             themecolor = ConsoleColor.Red;
         }
-        else if (Choice.KeyChar == 'r')
+        else if (choice.KeyChar == 'r')
         {
             Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"\nYou Cant Afford that, You have {coins}!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
         }
 
-        if (Choice.KeyChar == 'x' && coins >= 30)
+        if (choice.KeyChar == 'x' && coins >= 30)
             //Buy Faster Rollspeed
         {
             rollspeed *= 2;
             coins -= 30;
             Console.WriteLine($"\n-30 Coins Your Roll Speed Multiplier is Now x{rollspeed}, you have {coins} left!");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
         }
 
-        else if (Choice.KeyChar == 'x')
+        else if (choice.KeyChar == 'x')
         {
             Console.WriteLine($"\nYou Cant Afford that, You have {coins}!\n");
-            Choice = Console.ReadKey();
+            choice = Console.ReadKey();
         }
 
 
         // When Player Exits with 'e'
-        if (Choice.KeyChar == 'e')
+        if (choice.KeyChar == 'e')
         {
             shop = false;
             playing = true;
@@ -124,7 +124,7 @@ while (playing)
         }
 
         // Option to Exit
-        if (Choice.KeyChar == 'n')
+        if (choice.KeyChar == 'n')
             Environment.Exit(0);
     }
 
