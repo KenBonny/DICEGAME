@@ -35,6 +35,24 @@ while (playing)
             Write(game, result);
             break;
         case GameChoices.Play:
+            int[] diceRolls =
+            [
+                RollDie(),
+                RollDie(),
+                RollDie()
+            ];
+            var round = PlayRound(diceRolls);
+            game = game with
+            {
+                Wins = round.Win ? game.Wins + 1 : game.Wins,
+                Losses = round.Win ? game.Losses : game.Losses + 1,
+                Coins = round.Bonus switch
+                {
+                    Bonus.Double => game.Coins + 2,
+                    Bonus.Triple => game.Coins + 8,
+                    _ => game.Coins
+                }
+            };
             break;
         case GameChoices.Exit:
             Environment.Exit(0);
@@ -323,6 +341,17 @@ void Write(Game game, string message)
     Console.ResetColor();
 }
 
+Round PlayRound(int[] diceRolls)
+{
+    var bonus = diceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
+    {
+        2 => Bonus.Double,
+        3 => Bonus.Triple,
+        _ => Bonus.Normal
+    };
+    return new Round(diceRolls, bonus);
+}
+
 enum GameChoices
 {
     Play,
@@ -346,6 +375,13 @@ enum Speed
     Triple
 }
 
+enum Bonus
+{
+    Normal,
+    Double,
+    Triple
+}
+
 internal static class Price
 {
     public const int YellowDice = 10;
@@ -355,3 +391,29 @@ internal static class Price
 }
 
 record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Speed Speed);
+
+record Round(int[] DiceRolls, Bonus Bonus)
+{
+    public int Points =>
+        DiceRolls.Sum() +
+        (Bonus switch
+        {
+            Bonus.Double => 2,
+            Bonus.Triple => 4,
+            _ => 0
+        });
+    public bool Win => Points >= 15;
+}
+
+internal static class Extensions
+{
+    public static IEnumerable<(T, T)> Pair<T>(this IEnumerable<T> source)
+    {
+        var prev = source.FirstOrDefault();
+        foreach (var item in source.Skip(1))
+        {
+            yield return (prev, item)!;
+            prev = item;
+        }
+    }
+}
