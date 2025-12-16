@@ -23,7 +23,7 @@ while (true)
             ];
             var round = new Round(diceRolls);
             game = round.Win
-                ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins + 1 }
+                ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins }
                 : game with { Losses = game.Losses + 1, Coins = game.Coins + round.Coins };
 
             DisplayRoundResults(round, game);
@@ -207,31 +207,39 @@ internal static class Price
 
 record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Speed Speed);
 
-record Round(int[] DiceRolls)
+record Round
 {
-    public Bonus Bonus => DiceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
+    public Round(int[] diceRolls)
     {
-        1 => Bonus.Double,
-        3 => Bonus.Triple,
-        _ => Bonus.Normal
-    };
-    public int Points =>
-        DiceRolls.Sum() +
-        (Bonus switch
+        DiceRolls = diceRolls;
+        Bonus = DiceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
         {
-            Bonus.Double => 2,
-            Bonus.Triple => 6,
-            _ => 0
-        });
-
-    public int Coins =>
-        Bonus switch
+            1 => Bonus.Double,
+            3 => Bonus.Triple,
+            _ => Bonus.Normal
+        };
+        Points = DiceRolls.Sum() +
+            (Bonus switch
+            {
+                Bonus.Double => 2,
+                Bonus.Triple => 6,
+                _ => 0
+            });
+        Win = Points >= 15;
+        var bonusCoins = Bonus switch
         {
             Bonus.Double => 2,
             Bonus.Triple => 10,
             _ => 0
         };
-    public bool Win => Points >= 15;
+        Coins = (Win ? 1 : 0) + bonusCoins;
+    }
+
+    public int[] DiceRolls { get; init; }
+    public Bonus Bonus { get; init; }
+    public int Points { get; init; }
+    public bool Win { get; init; }
+    public int Coins { get; init; }
 }
 
 internal static class Extensions
