@@ -173,7 +173,7 @@ void DisplayRoundResults(Round round, Game game)
             Bonus.Triple => "You Rolled a Tripple! +6 Points And +10 Coins"
         });
     Console.WriteLine($"Points: {round.Points}");
-    Console.WriteLine($" Coins: {round.Coins}");
+    Console.WriteLine($" Coins: {game.Coins} (+{round.Coins} this round)");
     Console.WriteLine($"  Wins: {game.Wins} Losses: {game.Losses}");
     Console.WriteLine();
 }
