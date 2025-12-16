@@ -18,11 +18,9 @@ while (playing)
     var tripleScore = false;
     var bonus = 0;
 
-    //Randomizing each dice 1-6
-    Random dice = new();
-    var dice1 = dice.Next(1, 7);
-    var dice2 = dice.Next(1, 7);
-    var dice3 = dice.Next(1, 7);
+    var dice1 = RollDie();
+    var dice2 = RollDie();
+    var dice3 = RollDie();
 
 
     //Asks User if they want to play
@@ -225,3 +223,6 @@ while (playing)
 }
 
 ; //End While Loop
+return;
+
+int RollDie() => Random.Shared.Next(1, 7);
