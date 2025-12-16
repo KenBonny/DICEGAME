@@ -8,7 +8,6 @@ var wins = 0;
 var losses = 0;
 var coins = 0;
 
-
 //While loop for Game
 while (playing)
 {
@@ -24,8 +23,7 @@ while (playing)
 
 
     //Asks User if they want to play
-    Console.WriteLine(
-        "\n\nDice Game v 1.0\nDo you want to play? Press any key. \nPress 'n' to Exit\nPress 's' to Visit Shop");
+    DisplayGameIntro();
     var input = Console.ReadKey();
     if (input.KeyChar == 'y')
         playing = true;
@@ -222,7 +220,19 @@ while (playing)
     }
 }
 
-; //End While Loop
 return;
 
 int RollDie() => Random.Shared.Next(1, 7);
+
+void DisplayGameIntro()
+{
+    Console.WriteLine(
+        """
+
+
+        Dice Game v 1.0
+        Do you want to play? Press any key. 
+        Press 'n' to Exit
+        Press 's' to Visit Shop
+        """);
+}
