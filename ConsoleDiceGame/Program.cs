@@ -42,17 +42,10 @@ while (playing)
                 RollDie()
             ];
             var round = PlayRound(diceRolls);
-            game = game with
-            {
-                Wins = round.Win ? game.Wins + 1 : game.Wins,
-                Losses = round.Win ? game.Losses : game.Losses + 1,
-                Coins = round.Bonus switch
-                {
-                    Bonus.Double => game.Coins + 2,
-                    Bonus.Triple => game.Coins + 8,
-                    _ => game.Coins
-                }
-            };
+            game = round.Win
+                ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins + 1 }
+                : game with { Losses = game.Losses + 1, Coins = game.Coins + round.Coins };
+
             break;
         case GameChoices.Exit:
             Environment.Exit(0);
@@ -334,13 +327,6 @@ Press 'e' To go back!
     };
 }
 
-void Write(Game game, string message)
-{
-    Console.ForegroundColor = game.ThemeColor;
-    Console.WriteLine(message);
-    Console.ResetColor();
-}
-
 Round PlayRound(int[] diceRolls)
 {
     var bonus = diceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
@@ -399,9 +385,17 @@ record Round(int[] DiceRolls, Bonus Bonus)
         (Bonus switch
         {
             Bonus.Double => 2,
-            Bonus.Triple => 4,
+            Bonus.Triple => 6,
             _ => 0
         });
+
+    public int Coins =>
+        Bonus switch
+        {
+            Bonus.Double => 2,
+            Bonus.Triple => 10,
+            _ => 0
+        };
     public bool Win => Points >= 15;
 }
 
