@@ -24,6 +24,16 @@ while (playing)
 
     //Asks User if they want to play
     DisplayGameIntro();
+    switch (ChooseGameOption())
+    {
+        case GameChoices.Shop:
+            break;
+        case GameChoices.Play:
+            break;
+        case GameChoices.Exit:
+            Environment.Exit(0);
+            break;
+    }
     var input = Console.ReadKey();
     if (input.KeyChar == 'y')
         playing = true;
@@ -231,8 +241,30 @@ void DisplayGameIntro()
 
 
         Dice Game v 1.0
-        Do you want to play? Press any key. 
+        """);
+}
+
+GameChoices ChooseGameOption()
+{
+    Console.ResetColor();
+    Console.WriteLine(
+        """
+        Do you want to play?
+        Press any key. 
         Press 'n' to Exit
         Press 's' to Visit Shop
         """);
+    return Console.ReadKey().KeyChar switch
+    {
+        'n' => GameChoices.Exit,
+        's' => GameChoices.Shop,
+        _ => GameChoices.Play
+    };
+}
+
+enum GameChoices
+{
+    Play,
+    Shop,
+    Exit
 }
