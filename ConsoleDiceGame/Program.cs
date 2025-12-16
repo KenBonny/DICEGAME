@@ -21,7 +21,7 @@ while (true)
                 RollDie(),
                 RollDie()
             ];
-            var round = PlayRound(diceRolls);
+            var round = new Round(diceRolls);
             game = round.Win
                 ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins + 1 }
                 : game with { Losses = game.Losses + 1, Coins = game.Coins + round.Coins };
@@ -124,17 +124,6 @@ Press 'e' To go back!
     };
 }
 
-Round PlayRound(int[] diceRolls)
-{
-    var bonus = diceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
-    {
-        2 => Bonus.Double,
-        3 => Bonus.Triple,
-        _ => Bonus.Normal
-    };
-    return new Round(diceRolls, bonus);
-}
-
 void Write(Game game, string message)
 {
     Console.ForegroundColor = game.ThemeColor;
@@ -218,8 +207,14 @@ internal static class Price
 
 record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Speed Speed);
 
-record Round(int[] DiceRolls, Bonus Bonus)
+record Round(int[] DiceRolls)
 {
+    public Bonus Bonus => DiceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
+    {
+        1 => Bonus.Double,
+        3 => Bonus.Triple,
+        _ => Bonus.Normal
+    };
     public int Points =>
         DiceRolls.Sum() +
         (Bonus switch
