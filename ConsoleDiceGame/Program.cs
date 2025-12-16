@@ -1,37 +1,51 @@
 ﻿//Initial Values
 
-var game = new Game(0, 0, 0, ConsoleColor.White, Speed.Normal);
+var gameEvents = new List<GameEvent>();
 
 DisplayGameIntro();
 //While loop for Game
 while (true)
 {
-    switch (ChooseGameOption())
+    var roundEvents = new List<GameEvent>();
+    roundEvents.Add(ChooseGameOption());
+    switch (roundEvents.Last())
     {
-        case GameChoices.Shop:
+        case global::Shop:
+            var game = new GameState(gameEvents).Game;
             var shopChoice = DisplayShopMenu(game);
-            var (gameState, result) = Shop(game, shopChoice);
-            game = gameState;
-            Write(game, result);
+            var choice = Shop(game, shopChoice);
+            roundEvents.Add(choice);
             break;
-        case GameChoices.Play:
-            int[] diceRolls =
-            [
-                RollDie(),
-                RollDie(),
-                RollDie()
-            ];
-            var round = new Round(diceRolls);
-            game = round.Win
-                ? game with { Wins = game.Wins + 1, Coins = game.Coins + round.Coins }
-                : game with { Losses = game.Losses + 1, Coins = game.Coins + round.Coins };
-
-            DisplayRoundResults(round, game);
-
+        case Play:
+            roundEvents.Add(
+                new DiceRolled(
+                [
+                    RollDie(),
+                    RollDie(),
+                    RollDie()
+                ]));
             break;
-        case GameChoices.Exit:
-            Environment.Exit(0);
+        case Exit:
+            roundEvents.Add(new Exit());
             break;
+    }
+    
+    gameEvents.AddRange(roundEvents);
+    foreach (var roundEvent in roundEvents)
+    {
+        switch (roundEvent)
+        {
+            case ShopChoice choice:
+                DisplayShopChoice(choice);
+                break;
+            case DiceRolled round:
+                var game = new GameState(gameEvents).Game;
+                DisplayRoundResults(round, game);
+                break;
+            case Exit:
+                Environment.Exit(0);
+                break;
+        }
     }
 
 }
@@ -48,7 +62,7 @@ void DisplayGameIntro()
         """);
 }
 
-GameChoices ChooseGameOption()
+GameEvent ChooseGameOption()
 {
     Console.ResetColor();
     Console.WriteLine(
@@ -60,9 +74,9 @@ GameChoices ChooseGameOption()
         """);
     return Console.ReadKey().KeyChar switch
     {
-        'n' => GameChoices.Exit,
-        's' => GameChoices.Shop,
-        _ => GameChoices.Play
+        'n' => new Exit(),
+        's' => new Shop(),
+        _ => new Play()
     };
 }
 
@@ -86,7 +100,7 @@ ShopChoices DisplayShopMenu(Game game)
     Console.ForegroundColor = ConsoleColor.Red;
     Console.WriteLine("3.  50 Coins - Red Dice:\t1 1 1");
     Console.ForegroundColor = ConsoleColor.White;
-    Console.Write("4.  30 Coins - 2x Roll Speed - (Can Stack)");
+    Console.WriteLine("4.  30 Coins - 2x Roll Speed - (Can Stack)");
     
     return Console.ReadKey().KeyChar switch
     {
@@ -98,47 +112,71 @@ ShopChoices DisplayShopMenu(Game game)
     };
 }
 
-(Game, string) Shop(Game game, ShopChoices choice)
+ShopChoice Shop(Game game, ShopChoices choice)
 {
     return choice switch
     {
-        ShopChoices.YellowDice when game.Coins >= Price.YellowDice => (
-            game with { Coins = game.Coins - Price.YellowDice, ThemeColor = ConsoleColor.Yellow },
-            "You have purchased yellow dice for 10 coins."),
-        ShopChoices.BlueDice when game.Coins >= Price.BlueDice => (
-            game with { Coins = game.Coins - Price.BlueDice, ThemeColor = ConsoleColor.Blue },
-            "You have purchased blue dice for 20 coins"),
-        ShopChoices.RedDice when game.Coins >= Price.RedDice => (
-            game with { Coins = game.Coins - Price.RedDice, ThemeColor = ConsoleColor.Red },
-            "You have purchased red dice for 50 coins"),
-        ShopChoices.DoubleRollSpeed when game.Speed == Speed.Triple => (game, "You have reached max roll speed"),
-        ShopChoices.DoubleRollSpeed when game.Coins >= Price.DoubleRollSpeed => (game with
+        ShopChoices.YellowDice when game.Coins >= Price.YellowDice => new BoughtThemedDice(ConsoleColor.Yellow, Price.YellowDice),
+        ShopChoices.BlueDice when game.Coins >= Price.BlueDice => new BoughtThemedDice(ConsoleColor.Blue, Price.BlueDice),
+        ShopChoices.RedDice when game.Coins >= Price.RedDice => new BoughtThemedDice(ConsoleColor.Red, Price.RedDice),
+        ShopChoices.DoubleRollSpeed when game.Speed == Speed.Triple => game.Speed switch
         {
-            Coins = game.Coins - Price.DoubleRollSpeed,
-            Speed = game.Speed switch
-            {
-                Speed.Normal => Speed.Double,
-                _ => Speed.Triple
-            }
-        }, "You have purchased double roll speed for 30 coins"),
-        ShopChoices.DoNotShop => (game, "You did not buy anything"),
-        _ => (game, "You do not have enough coins to buy that!")
+            Speed.Normal => new BoughtDoubleSpeed(Price.DoubleRollSpeed),
+            _ => new BoughtTripleSpeed(Price.DoubleRollSpeed),
+        },
+        ShopChoices.DoNotShop => new BoughtNothing(),
+        _ => new CouldNotBuy(choice)
     };
 }
 
-void Write(Game game, string message)
+void DisplayShopChoice(ShopChoice choice)
 {
-    Console.ForegroundColor = game.ThemeColor;
+    switch (choice)
+    {
+        case BoughtThemedDice x:
+            WriteLine(x.Color, $"You have purchased {x.Color} dice for {x.Price} coins!");
+            break;
+        case BoughtDoubleSpeed x:
+            Console.WriteLine($"You have purchased double roll speed for {x.Price} coins!");
+            break;
+        case BoughtTripleSpeed x:
+            Console.WriteLine($"You have purchased triple roll speed for {x.Price} coins!");
+            break;
+        case CouldNotBuy x:
+            var message = x.Choice switch
+            {
+                ShopChoices.DoubleRollSpeed => "double roll speed",
+                ShopChoices.BlueDice => "blue dice",
+                ShopChoices.RedDice => "red dice",
+                ShopChoices.YellowDice => "yellow dice",
+                _ => x.Choice.ToString()
+            };
+            Console.WriteLine($"You could not buy {message} because you do not have enough coins!");
+            break;
+        case MaxSpeedReached:
+            Console.WriteLine("You have reached max roll speed!");
+            break;
+        default:
+            Console.WriteLine();
+            break;
+    }
+}
+
+void Write(Game game, string message) => WriteLine(game.ThemeColor, message);
+
+void WriteLine(ConsoleColor color, string message) 
+{
+    Console.ForegroundColor = color;
     Console.WriteLine(message);
     Console.ResetColor();
 }
 
-void DisplayRoundResults(Round round, Game game)
+void DisplayRoundResults(DiceRolled diceRolled, Game game)
 {
     Console.WriteLine("Loading round...");
     Thread.Sleep(TimeSpan.FromSeconds(2));
     Console.WriteLine("Rolling the dice...");
-    foreach (var roll in round.DiceRolls)
+    foreach (var roll in diceRolled.DiceRolls)
     {
         var speed = game.Speed switch
         {
@@ -151,29 +189,22 @@ void DisplayRoundResults(Round round, Game game)
     }
 
     Console.WriteLine();
-    if (round.Win)
+    if (diceRolled.Win)
         Write(game with { ThemeColor = ConsoleColor.Green }, "You won!");
     else
         Write(game with { ThemeColor = ConsoleColor.Magenta }, "You lost!");
     Console.WriteLine();
     Console.WriteLine(
-        round.Bonus switch
+        diceRolled.Bonus switch
         {
             Bonus.Normal => "You Rolled with normal dice!",
             Bonus.Double => "You Rolled a Double! +2 Points And +2 Coins",
             Bonus.Triple => "You Rolled a Tripple! +6 Points And +10 Coins"
         });
-    Console.WriteLine($"Points: {round.Points}");
-    Console.WriteLine($" Coins: {game.Coins} (+{round.Coins} this round)");
+    Console.WriteLine($"Points: {diceRolled.Points}");
+    Console.WriteLine($" Coins: {game.Coins} (+{diceRolled.Coins} this round)");
     Console.WriteLine($"  Wins: {game.Wins} Losses: {game.Losses}");
     Console.WriteLine();
-}
-
-enum GameChoices
-{
-    Play,
-    Shop,
-    Exit
 }
 
 enum ShopChoices
@@ -209,9 +240,34 @@ internal static class Price
 
 record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Speed Speed);
 
-record Round
+internal class GameState
 {
-    public Round(int[] diceRolls)
+    public GameState(List<GameEvent> gameEvents)
+    {
+        var game = new Game(0, 0, 0, ConsoleColor.White, Speed.Normal);
+        game = gameEvents.Aggregate(
+            game,
+            (current, @event) => @event switch
+            {
+                DiceRolled dicedRolled => dicedRolled.Win
+                    ? current with { Wins = current.Wins + 1, Coins = current.Coins + dicedRolled.Coins }
+                    : current with { Losses = current.Losses + 1, Coins = current.Coins + dicedRolled.Coins },
+                BoughtThemedDice boughtThemedDice => current with
+                {
+                    ThemeColor = boughtThemedDice.Color, Coins = current.Coins - boughtThemedDice.Price
+                },
+                _ => current
+            });
+
+        Game = game;
+    }
+
+    public Game Game { get; }
+}
+
+record DiceRolled : GameEvent
+{
+    public DiceRolled(int[] diceRolls)
     {
         DiceRolls = diceRolls;
         Bonus = DiceRolls.Pair().Select(pair => pair.Item1 == pair.Item2).Count(x => x) switch
@@ -255,3 +311,18 @@ internal static class Extensions
         }
     }
 }
+
+internal abstract record GameEvent;
+
+internal record Exit : GameEvent;
+internal record Play : GameEvent;
+internal record Shop : GameEvent;
+
+internal abstract record ShopChoice : GameEvent;
+internal record BoughtThemedDice(ConsoleColor Color, int Price) : ShopChoice;
+internal record BoughtDoubleSpeed(int Price) : ShopChoice;
+internal record BoughtTripleSpeed(int Price) : ShopChoice;
+
+internal record CouldNotBuy(ShopChoices Choice) : ShopChoice;
+internal record BoughtNothing : ShopChoice;
+internal record MaxSpeedReached : ShopChoice;
