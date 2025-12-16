@@ -238,11 +238,10 @@ internal static class Extensions
 {
     public static IEnumerable<(T, T)> Pair<T>(this IEnumerable<T> source)
     {
-        var prev = source.FirstOrDefault();
-        foreach (var item in source.Skip(1))
+        foreach (var item in source.Select((value, i) => new { value, i}))
         {
-            yield return (prev, item)!;
-            prev = item;
+            foreach (var item2 in source.Skip(item.i + 1))
+                yield return (item.value, item2);
         }
     }
 }
