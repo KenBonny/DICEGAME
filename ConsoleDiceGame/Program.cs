@@ -2,10 +2,10 @@
 
 var game = new Game(0, 0, 0, ConsoleColor.White, Speed.Normal);
 
+DisplayGameIntro();
 //While loop for Game
 while (true)
 {
-    DisplayGameIntro();
     switch (ChooseGameOption())
     {
         case GameChoices.Shop:
