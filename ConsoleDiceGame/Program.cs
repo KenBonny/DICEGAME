@@ -8,6 +8,8 @@ var wins = 0;
 var losses = 0;
 var coins = 0;
 
+var game = new Game(0, 0, 0, ConsoleColor.White, Score.Normal);
+
 //While loop for Game
 while (playing)
 {
@@ -27,38 +29,10 @@ while (playing)
     switch (ChooseGameOption())
     {
         case GameChoices.Shop:
-            var shopChoice = DisplayShopMenu(coins);
-            ShopResult result = shopChoice switch
-            {
-                ShopChoices.YellowDice when coins >= Price.YellowDice => new Purchase(
-                    Price.YellowDice,
-                    "You have purchased yellow dice for 10 coins.",
-                    ConsoleColor.Yellow),
-                ShopChoices.BlueDice when coins >= Price.BlueDice => new Purchase(
-                    Price.BlueDice,
-                    "You have purchased blue dice for 20 coins",
-                    ConsoleColor.Blue),
-                ShopChoices.RedDice when coins >= Price.RedDice => new Purchase(
-                    Price.RedDice,
-                    "You have purchased red dice for 50 coins",
-                    ConsoleColor.Red),
-                ShopChoices.DoubleRollSpeed when coins >= Price.DoubleRollSpeed => new Purchase(
-                    Price.DoubleRollSpeed,
-                    "You have purchased 2x roll speed for 30 coins",
-                    ConsoleColor.White),
-                _ => new UnableToBuy()
-            };
-            switch (result)
-            {
-                case Purchase purchase:
-                    coins -= purchase.CoinsSpent;
-                    themecolor = purchase.yellow;
-                    Console.WriteLine(purchase.Message);
-                    break;
-                case UnableToBuy:
-                    Console.WriteLine($"You do not have enough coins to buy that! You have {coins} coins");
-                    break;
-            }
+            var shopChoice = DisplayShopMenu(game);
+            var (gameState, result) = Shop(game, shopChoice);
+            game = gameState;
+            Write(game, result);
             break;
         case GameChoices.Play:
             break;
@@ -77,7 +51,7 @@ while (playing)
     while (shop)
     {
         //Shop "UI"
-        DisplayShopMenu(coins);
+        // DisplayShopMenu(coins);
         var choice = Console.ReadKey();
 
         //Buying Yellow Color and Changing Team
@@ -284,7 +258,7 @@ GameChoices ChooseGameOption()
     };
 }
 
-ShopChoices DisplayShopMenu(int coins)
+ShopChoices DisplayShopMenu(Game game)
 {
     Console.ResetColor();
     Console.WriteLine(
@@ -292,7 +266,7 @@ ShopChoices DisplayShopMenu(int coins)
 
 Welcome to The Shop!
 Here you can buy cosmetics with Coins by Entering their Character.
-You have {coins} Coins!
+You have {game.Coins} Coins!
 Press 'e' To go back!
 ");
     Console.ForegroundColor = ConsoleColor.Yellow;
@@ -310,8 +284,36 @@ Press 'e' To go back!
         '2' => ShopChoices.BlueDice,
         '3' => ShopChoices.RedDice,
         '4' => ShopChoices.DoubleRollSpeed,
-        _ => ShopChoices.YellowDice
+        _ => ShopChoices.DoNotShop
     };
+}
+
+(Game, string) Shop(Game game, ShopChoices choice)
+{
+    return choice switch
+    {
+        ShopChoices.YellowDice when game.Coins >= Price.YellowDice => (
+            game with { Coins = game.Coins - Price.YellowDice, ThemeColor = ConsoleColor.Yellow },
+            "You have purchased yellow dice for 10 coins."),
+        ShopChoices.BlueDice when game.Coins >= Price.BlueDice => (
+            game with { Coins = game.Coins - Price.BlueDice, ThemeColor = ConsoleColor.Blue },
+            "You have purchased blue dice for 20 coins"),
+        ShopChoices.RedDice when game.Coins >= Price.RedDice => (
+            game with { Coins = game.Coins - Price.RedDice, ThemeColor = ConsoleColor.Red },
+            "You have purchased red dice for 50 coins"),
+        ShopChoices.DoubleRollSpeed when game.Coins >= Price.DoubleRollSpeed => (
+            game with { Coins = game.Coins - Price.DoubleRollSpeed },
+            "You have purchased double roll speed for 30 coins"),
+        ShopChoices.DoNotShop => (game, "You did not buy anything"),
+        _ => (game, "You do not have enough coins to buy that!")
+    };
+}
+
+void Write(Game game, string message)
+{
+    Console.ForegroundColor = game.ThemeColor;
+    Console.WriteLine(message);
+    Console.ResetColor();
 }
 
 enum GameChoices
@@ -326,7 +328,15 @@ enum ShopChoices
     YellowDice,
     BlueDice,
     RedDice,
-    DoubleRollSpeed
+    DoubleRollSpeed,
+    DoNotShop
+}
+
+enum Score
+{
+    Normal,
+    Double,
+    Triple
 }
 
 internal static class Price
@@ -337,6 +347,4 @@ internal static class Price
     public const int DoubleRollSpeed = 30;
 }
 
-record ShopResult;
-record Purchase(int CoinsSpent, string Message, ConsoleColor yellow) : ShopResult;
-record UnableToBuy : ShopResult;
+record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Score Score);
