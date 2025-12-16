@@ -70,13 +70,15 @@ ShopChoices DisplayShopMenu(Game game)
 {
     Console.ResetColor();
     Console.WriteLine(
-        $@"
+        $"""
 
-Welcome to The Shop!
-Here you can buy cosmetics with Coins by Entering their Character.
-You have {game.Coins} Coins!
-Press 'e' To go back!
-");
+
+         Welcome to The Shop!
+         Here you can buy cosmetics with Coins by Entering their Character.
+         You have {game.Coins} Coins!
+         Press 'e' To go back!
+
+         """);
     Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine("1.  10 Coins - Yellow Dice\t1 1 1");
     Console.ForegroundColor = ConsoleColor.Blue;
@@ -219,12 +221,12 @@ record Round
             _ => Bonus.Normal
         };
         Points = DiceRolls.Sum() +
-            (Bonus switch
+            Bonus switch
             {
                 Bonus.Double => 2,
                 Bonus.Triple => 6,
                 _ => 0
-            });
+            };
         Win = Points >= 15;
         var bonusCoins = Bonus switch
         {
@@ -235,11 +237,11 @@ record Round
         Coins = (Win ? 1 : 0) + bonusCoins;
     }
 
-    public int[] DiceRolls { get; init; }
-    public Bonus Bonus { get; init; }
-    public int Points { get; init; }
-    public bool Win { get; init; }
-    public int Coins { get; init; }
+    public int[] DiceRolls { get; }
+    public Bonus Bonus { get; }
+    public int Points { get; }
+    public bool Win { get; }
+    public int Coins { get; }
 }
 
 internal static class Extensions
