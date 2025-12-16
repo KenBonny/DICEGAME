@@ -8,7 +8,7 @@ var wins = 0;
 var losses = 0;
 var coins = 0;
 
-var game = new Game(0, 0, 0, ConsoleColor.White, Score.Normal);
+var game = new Game(0, 0, 0, ConsoleColor.White, Speed.Normal);
 
 //While loop for Game
 while (playing)
@@ -301,9 +301,16 @@ Press 'e' To go back!
         ShopChoices.RedDice when game.Coins >= Price.RedDice => (
             game with { Coins = game.Coins - Price.RedDice, ThemeColor = ConsoleColor.Red },
             "You have purchased red dice for 50 coins"),
-        ShopChoices.DoubleRollSpeed when game.Coins >= Price.DoubleRollSpeed => (
-            game with { Coins = game.Coins - Price.DoubleRollSpeed },
-            "You have purchased double roll speed for 30 coins"),
+        ShopChoices.DoubleRollSpeed when game.Speed == Speed.Triple => (game, "You have reached max roll speed"),
+        ShopChoices.DoubleRollSpeed when game.Coins >= Price.DoubleRollSpeed => (game with
+        {
+            Coins = game.Coins - Price.DoubleRollSpeed,
+            Speed = game.Speed switch
+            {
+                Speed.Normal => Speed.Double,
+                _ => Speed.Triple
+            }
+        }, "You have purchased double roll speed for 30 coins"),
         ShopChoices.DoNotShop => (game, "You did not buy anything"),
         _ => (game, "You do not have enough coins to buy that!")
     };
@@ -332,7 +339,7 @@ enum ShopChoices
     DoNotShop
 }
 
-enum Score
+enum Speed
 {
     Normal,
     Double,
@@ -347,4 +354,4 @@ internal static class Price
     public const int DoubleRollSpeed = 30;
 }
 
-record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Score Score);
+record Game(int Wins, int Losses, int Coins, ConsoleColor ThemeColor, Speed Speed);
