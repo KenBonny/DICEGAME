@@ -27,6 +27,38 @@ while (playing)
     switch (ChooseGameOption())
     {
         case GameChoices.Shop:
+            var shopChoice = DisplayShopMenu(coins);
+            ShopResult result = shopChoice switch
+            {
+                ShopChoices.YellowDice when coins >= Price.YellowDice => new Purchase(
+                    Price.YellowDice,
+                    "You have purchased yellow dice for 10 coins.",
+                    ConsoleColor.Yellow),
+                ShopChoices.BlueDice when coins >= Price.BlueDice => new Purchase(
+                    Price.BlueDice,
+                    "You have purchased blue dice for 20 coins",
+                    ConsoleColor.Blue),
+                ShopChoices.RedDice when coins >= Price.RedDice => new Purchase(
+                    Price.RedDice,
+                    "You have purchased red dice for 50 coins",
+                    ConsoleColor.Red),
+                ShopChoices.DoubleRollSpeed when coins >= Price.DoubleRollSpeed => new Purchase(
+                    Price.DoubleRollSpeed,
+                    "You have purchased 2x roll speed for 30 coins",
+                    ConsoleColor.White),
+                _ => new UnableToBuy()
+            };
+            switch (result)
+            {
+                case Purchase purchase:
+                    coins -= purchase.CoinsSpent;
+                    themecolor = purchase.yellow;
+                    Console.WriteLine(purchase.Message);
+                    break;
+                case UnableToBuy:
+                    Console.WriteLine($"You do not have enough coins to buy that! You have {coins} coins");
+                    break;
+            }
             break;
         case GameChoices.Play:
             break;
@@ -45,17 +77,7 @@ while (playing)
     while (shop)
     {
         //Shop "UI"
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine(
-            $"\n\n\n\n\nWelcome to The Shop!\nHere you can buy cosmetics with Coins by Entering their Character.\nYou have {coins} Coins!\nPress 'e' To go back!\n");
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Write("'y'  10 Coins - Yellow Dice\t1 1 1");
-        Console.ForegroundColor = ConsoleColor.Blue;
-        Console.Write("\n'b'  20 Coins - Blue Dice:\t1 1 1");
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Write("\n'r'  50 Coins - Red Dice:\t1 1 1");
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.Write("\n'x'  30 Coins - 2x Roll Speed - (Can Stack)\n");
+        DisplayShopMenu(coins);
         var choice = Console.ReadKey();
 
         //Buying Yellow Color and Changing Team
@@ -262,9 +284,59 @@ GameChoices ChooseGameOption()
     };
 }
 
+ShopChoices DisplayShopMenu(int coins)
+{
+    Console.ResetColor();
+    Console.WriteLine(
+        $@"
+
+Welcome to The Shop!
+Here you can buy cosmetics with Coins by Entering their Character.
+You have {coins} Coins!
+Press 'e' To go back!
+");
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine("1.  10 Coins - Yellow Dice\t1 1 1");
+    Console.ForegroundColor = ConsoleColor.Blue;
+    Console.WriteLine("2.  20 Coins - Blue Dice:\t1 1 1");
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine("3.  50 Coins - Red Dice:\t1 1 1");
+    Console.ForegroundColor = ConsoleColor.White;
+    Console.Write("4.  30 Coins - 2x Roll Speed - (Can Stack)");
+    
+    return Console.ReadKey().KeyChar switch
+    {
+        '1' => ShopChoices.YellowDice,
+        '2' => ShopChoices.BlueDice,
+        '3' => ShopChoices.RedDice,
+        '4' => ShopChoices.DoubleRollSpeed,
+        _ => ShopChoices.YellowDice
+    };
+}
+
 enum GameChoices
 {
     Play,
     Shop,
     Exit
 }
+
+enum ShopChoices
+{
+    YellowDice,
+    BlueDice,
+    RedDice,
+    DoubleRollSpeed
+}
+
+internal static class Price
+{
+    public const int YellowDice = 10;
+    public const int BlueDice = 20;
+    public const int RedDice = 50;
+    public const int DoubleRollSpeed = 30;
+}
+
+record ShopResult;
+record Purchase(int CoinsSpent, string Message, ConsoleColor yellow) : ShopResult;
+record UnableToBuy : ShopResult;
